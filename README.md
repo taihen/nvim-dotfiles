@@ -27,7 +27,7 @@ Welcome to my personal NeoVim dotfiles repository, specifically tailored for inf
     git clone https://github.com/taihen/neovim-dotfiles.git ~/.config/nvim
     ```
 
-3. **Initial Setup with LazyNvim**: On launching NeoVim, `lazy.nvim` will install specified plugins will be automatically installed. No additional installation steps are required. Treesitter language definitions, formatters, linters will be installed dynamically.
+3. **Initial Setup with LazyNvim**: On launching NeoVim, `lazy.nvim` will install specified plugins. No additional installation steps are required. Treesitter language definitions, formatters, linters will be installed dynamically.
 
 ## External dependencies
 
