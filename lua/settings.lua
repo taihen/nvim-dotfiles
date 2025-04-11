@@ -51,12 +51,12 @@ opt.shiftwidth = 2
 opt.expandtab = true
 
 -- allows neovim to access the system clipboard
-opt.clipboard = "unnamedplus"
+opt.clipboard:append("unnamedplus")
 
--- case insensitive searching UNLESS /C or capital in search
+-- case insensitive searching UNLESS /C or mixed case in search
 opt.ignorecase = true
 
--- ignore 'ignorecase' if the search pattern contains upper case characters
+-- ignore 'ignorecase' if the search pattern contains mixed case characters
 opt.smartcase = true
 
 -- incremental live completion with a split summary information is not needed
@@ -85,7 +85,8 @@ opt.conceallevel = 0
 -- completeopt
 opt.completeopt = "menuone,noinsert"
 
--- interval writing swap file to disk, mostly used for gitsigns
+-- interval writing swap file to disk, mostly used for gitsigns, but alos makes
+-- difference for lsps
 opt.updatetime = 50
 
 -- additional colum for diagnostic
@@ -107,11 +108,11 @@ opt.textwidth = 80
 -- enable true (24-bit) colours in the terminal
 opt.termguicolors = true
 
+-- setting default colorscheme
+-- vim.cmd.colorscheme = "gruvbox-material"
+
 -- enable highlight search
 opt.hlsearch = true
-
--- decrease update time
-opt.updatetime = 250
 
 -- decreate mapped sequence wait time, displays which-key sooner
 opt.timeoutlen = 300
@@ -126,7 +127,13 @@ opt.showcmd = false
 
 -- remove dedicated space for cmd line
 opt.cmdheight = 0
+-- views can only be fully collapsed with the global statusline (avante
+-- recommendation 3), I prefer 0
 opt.laststatus = 0
 
 -- backspacing over
 opt.backspace = { "start", "eol", "indent" }
+
+-- pop up settings
+opt.pumheight = 10
+opt.pumblend = 10
