@@ -2,7 +2,7 @@
 
 Welcome to personal NeoVim configuration repository, specifically tailored for
 minimalist infrastructure development. Optimized for NeoVim 0.10 (although used
-currntly with 0.11), experience with other versions may vary.
+currently with 0.11), experience with other versions may vary.
 Built with `lazy.nvim` and `mason` for efficient plugin management, it aims to
 provide a powerful, flexible, and visually pleasing coding environment.
 
@@ -24,9 +24,10 @@ provide a powerful, flexible, and visually pleasing coding environment.
   tools to ensure configuration integrity.
 - **Gruvbox Theme:** Utilizes the popular [gruvbox
   theme](https://github.com/morhetz/gruvbox) for a warm, eye-friendly scheme
-  that's easy on the eyes during long sessions. While using with
-  [Ghostty](https://github.com/ghostty/Ghostty) or
-  [Kitty](https://sw.kovidgoyal.net/kitty/) terminals, that support switch
+  that's pleasant on the eyes during sessions. While using with
+  [Ghostty](https://github.com/ghostty-org/ghostty) or
+  [Kitty](https://sw.kovidgoyal.net/kitty/) terminals, or any other terminal
+  emulator that support switch
   between dark and light themes, it also switch automatically when the system
   theme changes.
 - **Minimalist Aesthetic:** A clean and minimalist interface with no status
@@ -42,7 +43,7 @@ provide a powerful, flexible, and visually pleasing coding environment.
   Additionally utilizing [Copilot](https://github.com/zbirenbaum/copilot.lua)
   and [Supermaven](https://github.com/supermaven-inc/supermaven-nvim) for code
   completion.
-  Avante is configured to use:
+  Avante configurations uses:
   - OpenRouter as the default provider with free model (deepseek-r1)
   - Gemini
   - Claude
@@ -108,4 +109,4 @@ pull request. Thank you in advance.
 ## License
 
 This NeoVim configuration, feel free to do whatever. Have fun, copy, and
-paste s of it to your likening.
+paste parts of it to your likening.
