@@ -40,12 +40,6 @@ return {
         },
     },
 
-    -- directional indication of cursor jumps, neovide alike feedback
-    -- it works nicely even with native kitty cursor tracking
-    {
-        "gen740/SmoothCursor.nvim",
-    },
-
     -- general colorizer without external deps
     {
         "NvChad/nvim-colorizer.lua",
@@ -451,7 +445,7 @@ return {
             focus = true,
             use_diagnostic_signs = true,
             win = {
-                type = "split",   -- split window
+                type = "split", -- split window
                 relative = "win", -- relative to current window
                 position = "right",
                 size = 0.3,
@@ -463,23 +457,27 @@ return {
     -- Coding assistance
     -- -----------------
 
-    -- experimental
-    -- {
-    --     "ggml-org/llama.vim",
-    -- },
-
     -- lsp configuration
+    -- TODO: should look in blink cmp in near future
+    --
     {
         "neovim/nvim-lspconfig",
         dependencies = {
             -- mason integration, LSPs, formatters and linters management
             {
-                "williamboman/mason.nvim",
+                "mason-org/mason.nvim",
                 dependencies = {
-                    { "williamboman/mason-lspconfig.nvim" },
+                    { "mason-org/mason-lspconfig.nvim" },
                     { "WhoIsSethDaniel/mason-tool-installer.nvim" },
                 },
             },
+
+            -- restarting LSP servers based on window focus where those are
+            -- needed keeping Neovim fast and responsive
+            {
+                "hinell/lsp-timeout.nvim",
+            },
+
             -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
             -- used for completion, annotations and signatures of Neovim apis
             { "folke/neodev.nvim", opts = {} },
@@ -527,215 +525,162 @@ return {
 
                     -- SchemaStore support
                     { "b0o/schemastore.nvim" },
+                },
+            },
+        },
+    },
 
-                    -- Supermaven
-                    -- (NOTE: This is not replated to cmp but it registeres as a
-                    -- completion source thus in not intrusive, testing for now,
-                    -- for now results are much more comprehensive than with copilot)
-                    {
-                        "supermaven-inc/supermaven-nvim",
-                        config = function()
-                            require("supermaven-nvim").setup({
-                                -- disables inline completion for use exclusively with cmp
-                                disable_inline_completion = true,
-                            })
-                        end,
-                    },
-
-                    -- MCPHub
-                    -- (NOTE: this is not a completion source but a tool to
-                    -- interact with the MCPHub server and simplify the
-                    -- interaction with it)
-                    {
-                        "ravitemer/mcphub.nvim",
-                        dependencies = {
-                            "nvim-lua/plenary.nvim", -- Required for Job and HTTP requests
-                        },
-                        -- comment the following line to ensure hub will be ready at the earliest
-                        cmd = "MCPHub",                          -- lazy load by default
-                        build = "npm install -g mcp-hub@latest", -- Installs required mcp-hub npm module
-                        -- uncomment this if you don't want mcp-hub to be available globally or can't use -g
-                        -- build = "bundled_build.lua",  -- Use this and set use_bundled_binary = true in opts  (see Advanced configuration)
-                        config = function()
-                            require("mcphub").setup({
-                                -- This sets vim.g.mcphub_auto_approve to false by default (can also be toggled from the HUB UI with `ga`)
-                                auto_approve = false,
-                            })
-                        end,
-                    },
-
-                    -- Cursor alike experience of AI Chat, althgought copilot
-                    -- was a good starter, beeing model independent is much more
-                    -- much more powerful due to dynamic industry changes and
-                    -- can be used offline with ollama
-                    {
-                        "yetone/avante.nvim",
-                        event = "VeryLazy",
-                        lazy = false,
-                        version = false, -- set this if you want to always pull the latest change
-                        opts = {
-                            default = {
-                                embed_image_as_base64 = false,
-                                prompt_for_file_name = false,
-                                drag_and_drop = {
-                                    insert_mode = true,
-                                },
-                            },
-                            behaviour = {
-                                auto_suggestions = false, -- Experimental stage
-                                auto_set_highlight_group = true,
-                                auto_set_keymaps = true,
-                                auto_apply_diff_after_generation = false,
-                                support_paste_from_clipboard = true,
-                                minimize_diff = true,         -- Whether to remove unchanged lines when applying a code block
-                                enable_token_counting = true, -- Whether to enable token counting. Default to true.
-                            },
-                            hints = { enabled = true },
-                            disabled_tools = { -- Tools are disabled due to overlap with MCP capabilities
-                                "list_files",  -- Built-in file operations
-                                "search_files",
-                                "read_file",
-                                "create_file",
-                                "rename_file",
-                                "delete_file",
-                                "create_dir",
-                                "rename_dir",
-                                "delete_dir",
-                                "bash", -- Built-in terminal access
-                            },
-                            -- the provider to use for the chat, for possible values see `:h avante`
-                            -- "claude" | "openai" | "azure" | "gemini" | "cohere" | "copilot" | "ollama"
-                            provider = "gemini",
-                            auto_suggestions_provider = "ollama",
-                            gemini = {
-                                model = "gemini-2.5-pro-exp-03-25",
-                                temperature = 0.5,
-                                max_tokens = 4096,
-                            },
-                            claude = {
-                                endpoint = "https://api.anthropic.com",
-                                model = "claude-3-5-sonnet-20241022",
-                                temperature = 0,
-                                max_tokens = 4096,
-                            },
-                            ollama = {
-                                endpoint = "http://127.0.0.1:11434", -- Note that there is no /v1 at the end.
-                                model = "deepseek-r1:latest",
-                                disable_tools = true,
-                            },
-                            vendors = {
-                                deepseek = {
-                                    __inherited_from = "openai",
-                                    api_key_name = "DEEPSEEK_API_KEY",
-                                    endpoint = "https://api.deepseek.com",
-                                    model = "deepseek-coder",
-                                },
-                                perplexity = {
-                                    __inherited_from = "openai",
-                                    api_key_name = "PERPLEXITY_API_KEY",
-                                    endpoint = "https://api.perplexity.ai",
-                                    model = "llama-3.1-sonar-large-128k-online",
-                                },
-                                openrouter = {
-                                    __inherited_from = "openai",
-                                    endpoint = "https://openrouter.ai/api/v1",
-                                    api_key_name = "OPENROUTER_API_KEY",
-                                    model = "deepseek/deepseek-chat-v3-0324:free",
-                                },
-                            },
-                            windows = {
-                                position = "right",  -- the position of the sidebar
-                                width = 30,          -- default % based on available width
-                                sidebar_header = {
-                                    enabled = false, -- true, false to enable/disable the header
-                                    align = "right", -- left, center, right for title
-                                    rounded = false,
-                                },
-                                edit = {
-                                    border = "rounded",
-                                    start_insert = true, -- Start insert mode when opening the edit window
-                                },
-                                ask = {
-                                    floating = false,    -- Open the 'AvanteAsk' prompt in a floating window
-                                    start_insert = true, -- Start insert mode when opening the ask window, only effective if floating = true.
-                                    border = "rounded",
-                                },
-                            },
-                        },
-                        -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-                        build = "make",
-                        -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-                        dependencies = {
-                            "nvim-treesitter/nvim-treesitter",
-                            "stevearc/dressing.nvim",
-                            "nvim-lua/plenary.nvim",
-                            "MunifTanjim/nui.nvim",
-                            --- The below dependencies are optional,
-                            "nvim-tree/nvim-web-devicons",   -- or echasnovski/mini.icons
-                            "nvim-telescope/telescope.nvim", -- for fileselector
-                            "hrsh7th/nvim-cmp",              -- for completion of avante commands
-                            -- "zbirenbaum/copilot.lua", -- for providers='copilot'
-                            {
-                                "zbirenbaum/copilot-cmp",
-                                event = "InsertEnter",
-                                config = function()
-                                    require("copilot_cmp").setup()
-                                end,
-                                dependencies = {
-                                    "zbirenbaum/copilot.lua",
-                                    cmd = "Copilot",
-                                    config = function()
-                                        require("copilot").setup({
-                                            suggestion = { enabled = true },
-                                            panel = { enabled = false },
-                                        })
-                                    end,
-                                },
-                            },
-                            {
-                                -- support for image pasting
-                                "HakonHarnes/img-clip.nvim",
-                                event = "VeryLazy",
-                                opts = {
-                                    -- recommended settings
-                                    default = {
-                                        embed_image_as_base64 = false,
-                                        prompt_for_file_name = false,
-                                        drag_and_drop = {
-                                            insert_mode = true,
-                                        },
-                                        -- required for Windows users
-                                        use_absolute_path = true,
-                                    },
-                                },
-                            },
-                            {
-                                -- for markdown rendering inside chat pane
-                                "MeanderingProgrammer/render-markdown.nvim",
-                                opts = {
-                                    file_types = { "Avante", "markdown" },
-                                },
-                                ft = { "Avante", "markdown" },
-                            },
-                        },
-                        -- config = function()
-                        --     require("avante").setup({
-                        --         -- system_prompt as function ensures LLM always has latest MCP server state
-                        --         -- This is evaluated for every message, even in existing chats
-                        --         system_prompt = function()
-                        --             local hub =
-                        --                 require("mcphub").get_hub_instance()
-                        --             return hub:get_active_servers_prompt()
-                        --         end,
-                        --         -- Using function prevents requiring mcphub before it's loaded
-                        --         custom_tools = function()
-                        --             return {
-                        --                 require("mcphub.extensions.avante").mcp_tool(),
-                        --             }
-                        --         end,
-                        --     })
-                        -- end,
-                    },
+    -- agentic assistance
+    -- as I never got along with avante that I've used before and with the EOL
+    -- of supermaven, which was fast and not intrusive I switched to sidekick
+    -- with copilot which on one hand provides inline completion and on the
+    -- other hand with cli agents
+    {
+        "folke/sidekick.nvim",
+        opts = {
+            cli = {
+                mux = {
+                    -- using zellij for general terminal mux and tmux
+                    -- exclusively for sidekick
+                    backend = "tmux",
+                    enabled = true,
+                },
+            },
+            nes = {
+                enabled = true,
+                debounce = 100,
+                trigger = {
+                    events = { "ModeChanged i:n", "TextChanged" },
+                },
+            },
+        },
+        keys = {
+            {
+                "<tab>",
+                function()
+                    -- if there is a next edit, jump to it, otherwise apply
+                    -- it if any
+                    if not require("sidekick").nes_jump_or_apply() then
+                        return "<Tab>" -- fallback to normal tab
+                    end
+                end,
+                expr = true,
+                desc = "Goto/Apply Next Edit Suggestion",
+            },
+            {
+                "<c-.>",
+                function()
+                    require("sidekick.cli").toggle()
+                end,
+                desc = "Sidekick Toggle",
+                mode = { "n", "t", "i", "x" },
+            },
+            {
+                "<leader>aa",
+                function()
+                    require("sidekick.cli").toggle()
+                end,
+                desc = "Sidekick Toggle CLI",
+            },
+            {
+                "<leader>as",
+                function()
+                    -- require("sidekick.cli").select()
+                    -- show only installed agents
+                    require("sidekick.cli").select({
+                        filter = { installed = true },
+                    })
+                end,
+                desc = "Select CLI",
+            },
+            {
+                "<leader>ad",
+                function()
+                    require("sidekick.cli").close()
+                end,
+                desc = "Detach a CLI Session",
+            },
+            {
+                "<leader>at",
+                function()
+                    require("sidekick.cli").send({ msg = "{this}" })
+                end,
+                mode = { "x", "n" },
+                desc = "Send This",
+            },
+            {
+                "<leader>af",
+                function()
+                    require("sidekick.cli").send({ msg = "{file}" })
+                end,
+                desc = "Send File",
+            },
+            {
+                "<leader>av",
+                function()
+                    require("sidekick.cli").send({ msg = "{selection}" })
+                end,
+                mode = { "x" },
+                desc = "Send Visual Selection",
+            },
+            {
+                "<leader>ap",
+                function()
+                    require("sidekick.cli").prompt()
+                end,
+                mode = { "n", "x" },
+                desc = "Sidekick Select Prompt",
+            },
+            -- Keybinding to open Claude directly
+            {
+                "<leader>ac",
+                function()
+                    require("sidekick.cli").toggle({
+                        name = "claude",
+                        focus = true,
+                    })
+                end,
+                desc = "Sidekick Toggle Claude",
+            },
+        },
+        dependencies = {
+            -- (optional) for NES functionality
+            {
+                "zbirenbaum/copilot.lua",
+                -- cmd = "Copilot",
+                event = "InsertEnter",
+                config = function()
+                    require("copilot").setup({
+                        panel = { enabled = false, auto_refresh = false },
+                        -- disable copilot's native suggestions since we're using sidekick NES
+                        suggestion = { enabled = false, auto_trigger = false },
+                        -- node binary to use (if you manage node with nvm, update path)
+                        copilot_node_command = "node",
+                        server_opts_overrides = {},
+                    })
+                end,
+            },
+            -- (optional) picker functionality
+            {
+                "folke/snacks.nvim",
+                priority = 1000,
+                lazy = false,
+                ---@type snacks.Config
+                opts = {
+                    -- default settings
+                    -- refer to the configuration section below
+                    bigfile = { enabled = true },
+                    dashboard = { enabled = true },
+                    explorer = { enabled = true },
+                    indent = { enabled = true },
+                    input = { enabled = true },
+                    picker = { enabled = true },
+                    notifier = { enabled = true },
+                    quickfile = { enabled = true },
+                    scope = { enabled = true },
+                    scroll = { enabled = true },
+                    statuscolumn = { enabled = true },
+                    words = { enabled = true },
                 },
             },
         },
@@ -757,27 +702,18 @@ return {
             -- treesitter autotags
             {
                 "windwp/nvim-ts-autotag",
-                dependencies = {
-                    "nvim-treesitter",
-                },
                 event = "InsertEnter",
             },
             -- treesitter wisely add "end" in ruby, Lua, Vimscript, etc.
             {
                 "RRethy/nvim-treesitter-endwise",
-                dependencies = {
-                    "nvim-treesitter",
-                },
                 event = "InsertEnter",
             },
-        },
-    },
-
-    -- restarting LSP servers based on window focus, keeping neovim fast
-    {
-        "hinell/lsp-timeout.nvim",
-        dependencies = {
-            "neovim/nvim-lspconfig",
+            -- used mostly with sidekick
+            {
+                "nvim-treesitter/nvim-treesitter-textobjects",
+                branch = "main",
+            },
         },
     },
 

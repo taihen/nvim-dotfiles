@@ -79,7 +79,11 @@ cmp.setup({
 
         -- More prevelant use of TAB
         ["<Tab>"] = function(fallback)
-            if cmp.visible() then
+            -- Check sidekick NES first (for AI-powered next edit suggestions)
+            local ok, sidekick = pcall(require, "sidekick")
+            if ok and sidekick.nes_jump_or_apply() then
+                return
+            elseif cmp.visible() then
                 cmp.select_next_item()
             elseif luasnip.expand_or_jumpable() then
                 luasnip.expand_or_jump()
@@ -111,9 +115,7 @@ cmp.setup({
         { name = "spell" },
         { name = "emoji" },
         { name = "calc" },
-        { name = "copilot" }, -- copilot plugin
         { name = "git" },
-        { name = "supermaven" }, -- supermaven plugin
         { name = "render-markdown" }, -- markdown plugin
     },
     experimental = {
