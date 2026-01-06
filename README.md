@@ -1,25 +1,22 @@
 # NeoVim Dotfiles
 
-Welcome to personal NeoVim configuration repository, specifically tailored for
-minimalist infrastructure development. Optimized for NeoVim 0.11+, experience
-with earlier versions may vary.
-Built with `lazy.nvim` and `mason` for efficient plugin management, it aims to
-provide a powerful, flexible, and visually pleasing coding environment.
-
-> NOTE: migration to LazyVim isn't completed as I would like and some plugins
-> configuration still lingers in `after/plugin`
+Welcome to Taihen personal NeoVim configuration repository, specifically
+tailored for minimalist infrastructure development. Optimized for NeoVim 0.11+,
+experience with earlier versions may vary. Built with `lazy.nvim` and `mason`
+for efficient plugin management, it aims to provide a powerful, flexible, and
+visually pleasing coding environment.
 
 ![Screenshot](./docs/screenshot.png)
 
 ## Features
 
-- **Effortless Plugin Management:** Powered by `lazy.nvim` and
+- **Plugin Management:** Powered by `lazy.nvim` and
   [Mason](https://github.com/williamboman/mason.nvim), enabling automatic
   installation and updates of plugins, formatters and LSPs.
 - **Custom Keybindings:** Intuitive shortcuts to improve navigation and editing
   efficiency, discoverable with
   [whichkey](https://github.com/folke/which-key.nvim).
-- **Enhanced Language Support:** Comprehensive support for infrastructure
+- **Language Support:** Support for infrastructure
   development with Terraform, GoLang, Ansible, Helm, and Docker Compose. Includes
   YAML and JSON validation with SchemaStore integration, plus support for Python,
   Bash, Lua, TypeScript, and more via Mason-managed LSPs and formatters.
@@ -38,19 +35,18 @@ provide a powerful, flexible, and visually pleasing coding environment.
 - **Performance Optimized:** A fast and responsive configuration, ensuring
   minimal startup time and smooth operation.
 - **Enhanced Editing:** Powered by
-  [mini.nvim](https://github.com/echasnovski/mini.nvim) suite providing advanced
-  text objects, surround operations, indent visualization, and automatic
-  whitespace management.
+  [mini.nvim](https://github.com/nvim-mini/mini.nvim) suite providing advanced
+  text objects, surround operations, indent visualization, automatic
+  whitespace management, smart buffer deletion, code movement, and split/join
+  operations.
 - **Clipboard Manager:** Persistent clipboard history with
   [neoclip](https://github.com/AckslD/nvim-neoclip.lua) integrated into Telescope
   for quick access to previous yanks.
 - **Markdown Experience:** Terminal rendering with
-  [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim)
-  and browser preview via
-  [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim).
+  [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim).
 - **Schema Validation:** JSON and YAML schema validation powered by
   [SchemaStore](https://github.com/b0o/schemastore.nvim) with support for custom
-  schemas (e.g., ArgoCD).
+  schemas (e.g., Kubernetes, Helm, ArgoCD).
 - **AI Enhanced Code Assistance:** Utilizing
   [Copilot](https://github.com/zbirenbaum/copilot.lua) for inline code
   completion and [Sidekick](https://github.com/folke/sidekick.nvim) for agentic
@@ -84,7 +80,8 @@ This configuration includes carefully selected plugins organized by category:
 - [mason.nvim](https://github.com/williamboman/mason.nvim) - LSP/tool installer
 - [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) - LSP configurations
 - [lsp-timeout.nvim](https://github.com/hinell/lsp-timeout.nvim) - Auto-restart LSP for performance
-- [none-ls.nvim](https://github.com/nvimtools/none-ls.nvim) - Formatting and linting
+- [conform.nvim](https://github.com/stevearc/conform.nvim) - Code formatting
+- [nvim-lint](https://github.com/mfussenegger/nvim-lint) - Linting and diagnostics
 - [schemastore.nvim](https://github.com/b0o/schemastore.nvim) - JSON/YAML schema validation
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Syntax parsing
 
@@ -95,51 +92,92 @@ This configuration includes carefully selected plugins organized by category:
 - [trouble.nvim](https://github.com/folke/trouble.nvim) - Diagnostics and quickfix UI
 - [nvim-neoclip.lua](https://github.com/AckslD/nvim-neoclip.lua) - Persistent clipboard manager
 
+### Git Integration
+
+- [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) - Terminal UI for Git operations
+- [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) - Git signs and hunks
+- [vscode-diff.nvim](https://github.com/esmuellert/vscode-diff.nvim) - VSCode-style diff viewer
+
 ### Editing Enhancement
 
-- [mini.nvim](https://github.com/echasnovski/mini.nvim) - Collection of independent modules:
+- [mini.nvim](https://github.com/nvim-mini/mini.nvim) - Collection of independent modules:
   - mini.ai - Advanced text objects
   - mini.surround - Bracket/quote manipulation
   - mini.indentscope - Indent visualization
   - mini.trailspace - Whitespace management
-- [Comment.nvim](https://github.com/numToStr/Comment.nvim) - Code commenting
-- [nvim-autopairs](https://github.com/windwp/nvim-autopairs) - Auto-closing pairs
+  - mini.comment - Code commenting with treesitter awareness
+  - mini.pairs - Auto-closing pairs
+  - mini.bracketed - Enhanced navigation with bracket mappings
+  - mini.bufremove - Smart buffer deletion without breaking layouts
+  - mini.move - Move lines/blocks with keyboard shortcuts
+  - mini.splitjoin - Toggle between single/multi-line code structures
 - [vim-sleuth](https://github.com/tpope/vim-sleuth) - Auto-detect indentation
 
 ### Markdown Support
 
 - [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim) - Terminal rendering
-- [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) - Browser preview
 
 See `lua/plugins.lua` for complete list and configurations.
 
 ## Installation
 
-1. **Backup Your Current Configuration**: To safeguard your existing
-   setup, consider backing it up before proceeding.
+### Quick Start (macOS/Linux with Homebrew)
+
+1. **Backup Your Current Configuration**:
 
    ```bash
    mv ~/.config/nvim ~/.config/nvim.backup
    ```
 
-2. **Clone the Repository**: Get the configuration by cloning this repository
-   into your `.config/nvim` directory.
+2. **Clone the Repository**:
 
    ```bash
    git clone https://github.com/taihen/neovim-dotfiles.git ~/.config/nvim
    ```
 
-3. **Initial Setup with LazyNvim**: On launching NeoVim, `lazy.nvim`
-   installs specified plugins. No additional installation steps required.
-   Treesitter language definitions, formatters, linters installs
-   dynamically.
+3. **Install All Dependencies** (one-command setup):
 
-## External dependencies
+   ```bash
+   cd ~/.config/nvim
+   ./scripts/install-dependencies.sh
+   ```
 
-Utilities installed with `lazy.vim` and `mason` also have dependencies, not
-managed by NeoVim.
+   This script installs:
+   - Neovim 0.11+
+   - All language servers (bash, go, terraform, lua, yaml, ansible, docker, helm, markdown)
+   - Formatters and linters (black, stylua, prettier, gofumpt, tflint, trivy, vale, etc.)
+   - Search tools (fd, ripgrep, fzf)
+   - Git tools (gh, lazygit)
+   - Nerd Fonts (Hack, JetBrains Mono, Fira Code)
+   - Supporting tools (sqlite, make, gcc, node, python3, go)
 
-In particular:
+4. **Configure Your Terminal**: Set your terminal font to a Nerd Font (e.g.,
+   "Hack Nerd Font") for proper icon rendering.
+
+5. **Launch Neovim**: On first launch, plugins will auto-install:
+
+   ```bash
+   nvim
+   ```
+
+6. **Verify Installation**:
+   ```vim
+   :checkhealth          " Check for issues
+   :Lazy sync            " Sync plugins
+   :Mason                " Verify LSP servers installed
+   ```
+
+### Manual Installation
+
+If you prefer manual installation or aren't using Homebrew, see the [External
+Dependencies](#external-dependencies) section below for a complete list of
+required tools.
+
+## External Dependencies
+
+The `install-dependencies.sh` script handles all these automatically on
+macOS/Linux with Homebrew. For manual installation or other platforms, ensure
+these are available:
 
 - **Build Tools:** A C compiler (like `gcc` or `clang`) is required by `nvim-treesitter` to build language parsers.
 - **Node.js and npm:** For JavaScript/TypeScript based plugins and language servers (e.g., `copilot.lua`, `eslint`).
@@ -150,14 +188,15 @@ In particular:
 - **make:** Required by `telescope-fzf-native.nvim` for building the native FZF sorter.
 - **sqlite3:** Required by `nvim-neoclip.lua` for persistent clipboard history.
 - **tmux:** Required by `sidekick.nvim` for CLI integration and agentic workflows.
+- **lazygit:** Terminal UI for Git commands, integrated via `lazygit.nvim` for enhanced Git workflows.
 - **Search Utilities (Recommended):**
   - `ripgrep`: Highly recommended for fast searching in Telescope.
   - `fd`: Recommended for fast file finding in Telescope.
 - **Optional (Depending on Use Case):**
   - `Docker`: May be needed if running certain tools or MCP servers in containers.
-  - `shellharden`: Shell script hardening and formatting (used by none-ls).
-  - `shfmt`: Shell script formatting (used by none-ls).
-  - `vale`: Syntax-aware prose linting (used by none-ls).
+  - `shellharden`: Shell script hardening and formatting (used by conform.nvim).
+  - `shfmt`: Shell script formatting (used by conform.nvim).
+  - `vale`: Syntax-aware prose linting (used by nvim-lint).
   - AI Agents: `claude`, `gemini`, `codex` or `opencode` CLI tools to power `sidekick.nvim`
 
 Ensure these dependencies are installed via your system's package manager (e.g., `apt`, `brew`, `pacman`).

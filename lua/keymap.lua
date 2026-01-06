@@ -28,7 +28,7 @@ keymap("n", "<leader>,", ":bprev<cr>", options)
 keymap("n", "<leader>.", ":bnext<cr>", options)
 
 -- quick delete buffer
-keymap("n", "<leader>/", ":bdelete<CR>", options)
+keymap("n", "<leader>bd", ":bdelete<CR>", { desc = "[B]uffer [D]elete" })
 
 -- remove unused ex keybind
 keymap("", "Q", "<Nop>", options)

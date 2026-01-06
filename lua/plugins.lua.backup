@@ -16,22 +16,6 @@ return {
             "folke/trouble.nvim",
         },
         opts = { signs = true },
-        keys = {
-            {
-                "]t",
-                function()
-                    require("todo-comments").jump_next({ keywords = { "ERROR", "WARNING" } })
-                end,
-                desc = "Next error/warning todo comment",
-            },
-            {
-                "[t",
-                function()
-                    require("todo-comments").jump_prev({ keywords = { "ERROR", "WARNING" } })
-                end,
-                desc = "Previous error/warning todo comment",
-            },
-        },
     },
 
     -- as there is no status line in this nvim configuration, while working in
@@ -76,8 +60,7 @@ return {
                     end
 
                     local function get_git_diff()
-                        local icons =
-                            { removed = "", changed = "", added = "" }
+                        local icons = { removed = "", changed = "", added = "" }
                         local signs = vim.b[props.buf].gitsigns_status_dict
                         local labels = {}
                         if signs == nil then
@@ -98,12 +81,8 @@ return {
                     end
 
                     local function get_diagnostic_label()
-                        local icons = {
-                            error = "",
-                            warn = "",
-                            info = "",
-                            hint = "",
-                        }
+                        local icons =
+                            { error = "", warn = "", info = "", hint = "" }
                         local label = {}
 
                         for severity, icon in pairs(icons) do
@@ -139,7 +118,7 @@ return {
 
                             return {
                                 string.format(
-                                    "%d:%d %d%% ",
+                                    " %d:%d %d%% ",
                                     line,
                                     col,
                                     percentage
@@ -171,30 +150,31 @@ return {
         end,
         event = "VeryLazy",
         dependencies = {
+            -- optional for icons
             "nvim-tree/nvim-web-devicons",
+            -- optional for diagnostics
+            {
+                "lewis6991/gitsigns.nvim",
+                dependencies = {
+                    "nvim-lua/plenary.nvim",
+                },
+            },
         },
     },
-
-    -- Git integration (extracted to lua/plugins/git.lua)
-    { import = "plugins.git" },
 
     -- general colorizer without external deps
     {
         "NvChad/nvim-colorizer.lua",
         event = "VeryLazy",
-        opts = {
-            filetypes = { "*" },
-            user_default_options = {
-                RGB = true,
-                RRGGBB = true,
-                names = true,
-                mode = "background",
-                tailwind = false,
-                virtualtext = "■",
-            },
-        },
     },
 
+    -- extended core experience, enhances the default Neovim UI for
+    -- `vim.ui.select`, `vim.ui.input`, `vim.diagnostic` and more
+    {
+        "stevearc/dressing.nvim",
+        event = "VeryLazy",
+        opts = {},
+    },
 
     -- `noice.nvim` completely replaces the UI for `vim.notify`, messages,
     -- and the cmdline
@@ -217,11 +197,11 @@ return {
                 view = "cmdline_popup", -- or "cmdline" for classic bottom
                 format = {
                     cmdline = { icon = ">" },
-                    search_down = { icon = " ⌄" },  -- Nerd Font search icon
-                    search_up = { icon = " ⌃" },    -- Nerd Font search icon
+                    search_down = { icon = "🔍⌄" },
+                    search_up = { icon = "🔍⌃" },
                     filter = { icon = "$" },
-                    lua = { icon = " " },           -- Nerd Font lua icon
-                    help = { icon = "󰋖" },           -- Nerd Font help icon
+                    lua = { icon = "☾" },
+                    help = { icon = "?" },
                 },
             },
 
@@ -308,11 +288,11 @@ return {
         },
         keys = {
             {
-                "<leader>nh",
+                "<leader>sn",
                 function()
                     require("noice").cmd("history")
                 end,
-                desc = "[N]oice [H]istory",
+                desc = "[S]earch [N]oice Message History",
             },
             {
                 "<leader>nl",
@@ -390,6 +370,46 @@ return {
         },
     },
 
+    -- automatically highlighting other uses of the word under the cursor
+    {
+        "RRethy/vim-illuminate",
+        event = "VeryLazy",
+        opts = {
+            delay = 200,
+            large_file_cutoff = 2000,
+            large_file_overrides = {
+                providers = { "lsp" },
+            },
+        },
+        config = function(_, opts)
+            require("illuminate").configure(opts)
+
+            local function map(key, dir, buffer)
+                vim.keymap.set("n", key, function()
+                    require("illuminate")["goto_" .. dir .. "_reference"](false)
+                end, {
+                    desc = dir:sub(1, 1):upper() .. dir:sub(2) .. " Reference",
+                    buffer = buffer,
+                })
+            end
+
+            map("]]", "next")
+            map("[[", "prev")
+
+            -- also set it after loading ftplugins, since a lot overwrite [[ and ]]
+            vim.api.nvim_create_autocmd("FileType", {
+                callback = function()
+                    local buffer = vim.api.nvim_get_current_buf()
+                    map("]]", "next", buffer)
+                    map("[[", "prev", buffer)
+                end,
+            })
+        end,
+        keys = {
+            { "]]", desc = "Next Reference" },
+            { "[[", desc = "Prev Reference" },
+        },
+    },
 
     -- after decade with solarized, since 2018 with gruvbox, in particular
     -- with material shade from 2024, lazy disabled, should load right away
@@ -462,7 +482,7 @@ return {
     -- by core neovim currently using:
     -- * mini.surround as a replacement for vim-surround
     -- * mini.ai extends motions
-    -- * mini.indentscope visualizes indent scope
+    -- * mini.indentscope visualizes indent scope (additionally to indent-blankline)
     -- * mini.trailspace trims trailing whitespaces on save
     -- * mini.bracketed for enhanced navigation with bracket mappings
     -- * mini.bufremove for smart buffer deletion
@@ -486,23 +506,9 @@ return {
             require("mini.surround").setup()
 
             -- visualize scope/indent with animated vertical line
-            -- provides better UX than snacks.indent (animated + navigation)
             -- - [i    - goto top of indent
             -- - ]i    - goto bottom of indent
-            require("mini.indentscope").setup({
-                draw = {
-                    delay = 50, -- delay before showing scope
-                    animation = require("mini.indentscope").gen_animation.quadratic({
-                        easing = "out",
-                        duration = 20,
-                        unit = "total",
-                    }),
-                },
-                symbol = "│", -- character for scope line
-                options = {
-                    try_as_border = true, -- try to use border for scope
-                },
-            })
+            require("mini.indentscope").setup()
 
             -- trailing whitespace handling (replaces vim-better-whitespace)
             require("mini.trailspace").setup()
@@ -572,8 +578,50 @@ return {
         "tpope/vim-sleuth",
     },
 
-    -- Fuzzy finder (extracted to lua/plugins/telescope.lua)
-    { import = "plugins.telescope" },
+    -- fuzzy finder and more
+    {
+        "nvim-telescope/telescope.nvim",
+        branch = "0.1.x",
+        event = "VimEnter",
+        dependencies = {
+            {
+                "nvim-lua/plenary.nvim",
+            },
+            {
+                "nvim-telescope/telescope-fzf-native.nvim",
+                build = "make",
+                cond = function()
+                    return vim.fn.executable("make") == 1
+                end,
+            },
+            {
+                "nvim-telescope/telescope-ui-select.nvim",
+            },
+            {
+                "nvim-tree/nvim-web-devicons",
+                enabled = vim.g.have_nerd_font,
+            },
+            -- register picker for fuzzy finder with pernament storage
+            {
+                "AckslD/nvim-neoclip.lua",
+                dependencies = {
+                    "kkharji/sqlite.lua",
+                    "nvim-telescope/telescope.nvim",
+                },
+            },
+            -- snippets fuzzy finder
+            {
+                "benfowler/telescope-luasnip.nvim",
+            },
+            -- terraform docs
+            {
+                "ANGkeith/telescope-terraform-doc.nvim",
+            },
+            {
+                "cappyzawa/telescope-terraform.nvim",
+            },
+        },
+    },
 
     -- key bindings discovery
     {
@@ -595,6 +643,11 @@ return {
         },
     },
 
+    -- indentation guides
+    {
+        "lukas-reineke/indent-blankline.nvim",
+        event = { "BufReadPre", "BufNewFile" },
+    },
 
     -- markdown viewing in terminal
     {
@@ -605,6 +658,24 @@ return {
             "nvim-tree/nvim-web-devicons",
         },
         opts = {},
+    },
+    -- in browser
+    {
+        "iamcco/markdown-preview.nvim",
+        event = "VeryLazy",
+        build = "cd app && npm install",
+        ft = { "markdown" },
+        init = function()
+            vim.g.mkdp_filetypes = { "markdown" }
+        end,
+        keys = {
+            {
+                "<leader>mp",
+                ":MarkdownPreview<CR>",
+                mode = "n",
+                desc = "[M]arkdown [P]review",
+            },
+        },
     },
 
     -- diagnostics helper
@@ -834,12 +905,125 @@ return {
     -- Coding assistance
     -- -----------------
 
-    -- LSP configuration (extracted to lua/plugins/lsp/)
-    { import = "plugins.lsp" },
+    -- lsp configuration
+    -- TODO: should look in blink cmp in near future
+    --
+    {
+        "neovim/nvim-lspconfig",
+        dependencies = {
+            -- mason integration, LSPs, formatters and linters management
+            {
+                "mason-org/mason.nvim",
+                dependencies = {
+                    { "mason-org/mason-lspconfig.nvim" },
+                    { "WhoIsSethDaniel/mason-tool-installer.nvim" },
+                },
+            },
 
-    -- Autocompletion (extracted to lua/plugins/completion.lua)
-    { import = "plugins.completion" },
+            -- restarting LSP servers based on window focus where those are
+            -- needed keeping Neovim fast and responsive
+            {
+                "hinell/lsp-timeout.nvim",
+            },
 
+            -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
+            -- used for completion, annotations and signatures of Neovim apis
+            { "folke/neodev.nvim", opts = {} },
+
+            -- autocompletion
+            {
+                "hrsh7th/nvim-cmp",
+                event = "InsertEnter",
+                dependencies = {
+                    { "hrsh7th/cmp-buffer" },
+                    { "hrsh7th/cmp-path" },
+                    { "hrsh7th/cmp-nvim-lsp" },
+                    { "hrsh7th/cmp-nvim-lua" },
+                    { "hrsh7th/cmp-emoji" },
+
+                    -- git
+                    { "petertriho/cmp-git" },
+
+                    -- snippets
+                    { "saadparwaiz1/cmp_luasnip" },
+                    {
+                        "L3MON4D3/LuaSnip",
+                        build = (function()
+                            -- Build Step is needed for regex support in snippets.
+                            if
+                                vim.fn.has("win32") == 1
+                                or vim.fn.executable("make") == 0
+                            then
+                                return
+                            end
+                            return "make install_jsregexp"
+                        end)(),
+                        dependencies = {
+                            {
+                                "rafamadriz/friendly-snippets",
+                                config = function()
+                                    require("luasnip.loaders.from_vscode").lazy_load()
+                                end,
+                            },
+                        },
+                    },
+
+                    -- LSP ncmp icons
+                    { "onsails/lspkind.nvim" },
+
+                    -- SchemaStore support
+                    { "b0o/schemastore.nvim" },
+                },
+            },
+        },
+    },
+
+    -- agentic assistance
+    {
+        "carlos-algms/agentic.nvim",
+        event = "VeryLazy",
+        opts = {
+            -- Available by default: "claude-acp" | "gemini-acp" | "codex-acp" | "opencode-acp"
+            provider = "claude-acp", -- setting the name here is all you need to get started
+
+            acp_providers = {
+                -- Override existing provider (e.g., add API key)
+                -- Agentic.nvim don't require API keys, only add it if that's how you prefer to authenticate
+                ["claude-acp"] = {
+                    env = {
+                        ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY"),
+                    },
+                },
+            },
+        },
+        -- these are just suggested keymaps; customize as desired
+        keys = {
+            {
+                "<C-\\>",
+                function()
+                    require("agentic").toggle()
+                end,
+                mode = { "n", "v", "i" },
+                desc = "Toggle Agentic Chat",
+            },
+            {
+                "<C-'>",
+                function()
+                    require("agentic").add_selection_or_file_to_context()
+                end,
+                mode = { "n", "v" },
+                desc = "Add file or selection to Agentic to Context",
+            },
+            {
+                "<C-,>",
+                function()
+                    require("agentic").new_session()
+                end,
+                mode = { "n", "v", "i" },
+                desc = "New Agentic Session",
+            },
+        },
+    },
 
     -- as I never got along with avante that I've used before and with the EOL
     -- of supermaven, which was fast and not intrusive I switched to sidekick
@@ -989,23 +1173,20 @@ return {
                 lazy = false,
                 ---@type snacks.Config
                 opts = {
-                    -- Core utilities
+                    -- default settings
+                    -- refer to the configuration section below
                     bigfile = { enabled = true },
-                    explorer = { enabled = true },     -- Primary file browser (actively used)
+                    dashboard = { enabled = true },
+                    explorer = { enabled = true },
+                    indent = { enabled = true },
                     input = { enabled = true },
+                    picker = { enabled = true },
+                    notifier = { enabled = true },
                     quickfile = { enabled = true },
                     scope = { enabled = true },
+                    scroll = { enabled = true },
                     statuscolumn = { enabled = true },
                     words = { enabled = true },
-
-                    -- Visual enhancements
-                    indent = { enabled = false },      -- Disabled: redundant with mini.indentscope
-                    scroll = { enabled = true },       -- Smooth scrolling (actively used)
-
-                    -- Disabled - redundant with other plugins
-                    dashboard = { enabled = false },   -- Unused, no startup screen needed
-                    picker = { enabled = false },      -- Redundant with Telescope
-                    notifier = { enabled = false },    -- Noice uses snacks backend
                 },
             },
         },
@@ -1021,15 +1202,13 @@ return {
     -- * and more ...
     {
         "nvim-treesitter/nvim-treesitter",
+        event = { "BufReadPost", "BufNewFile" },
         build = ":TSUpdate",
-        lazy = false,
-        priority = 100,
         dependencies = {
             -- treesitter autotags
             {
                 "windwp/nvim-ts-autotag",
                 event = "InsertEnter",
-                opts = { enable = true },
             },
             -- treesitter wisely add "end" in ruby, Lua, Vimscript, etc.
             {
@@ -1042,176 +1221,16 @@ return {
                 branch = "main",
             },
         },
-        config = function()
-            -- Enable treesitter-based folding
-            vim.opt.foldmethod = "expr"
-            vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
-            vim.opt.foldlevelstart = 99
-
-            -- Configure treesitter (using new API)
-            require("nvim-treesitter.config").setup({
-                ensure_installed = {
-                    "bash", "css", "dockerfile", "gitignore", "git_config",
-                    "gitcommit", "git_rebase", "gitattributes", "go", "gomod",
-                    "gosum", "gowork", "helm", "html", "regex", "javascript",
-                    "json", "lua", "luadoc", "markdown", "markdown_inline",
-                    "python", "terraform", "hcl", "toml", "tsx", "typescript",
-                    "vim", "vimdoc", "yaml",
-                },
-                highlight = { enable = true },
-                indent = { enable = true },
-                auto_tag = { enable = true },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = "<C-space>",
-                        node_incremental = "<C-space>",
-                        scope_incremental = false,
-                        node_decremental = "<bs>",
-                    },
-                },
-                textobjects = {
-                    select = {
-                        enable = true,
-                        lookahead = true,
-                        keymaps = {
-                            ["af"] = "@function.outer",
-                            ["if"] = "@function.inner",
-                            ["ac"] = "@class.outer",
-                            ["ic"] = "@class.inner",
-                            ["aa"] = "@parameter.outer",
-                            ["ia"] = "@parameter.inner",
-                            ["ab"] = "@block.outer",
-                            ["ib"] = "@block.inner",
-                        },
-                    },
-                    move = {
-                        enable = true,
-                        set_jumps = true,
-                        goto_next_start = {
-                            ["]m"] = "@function.outer",
-                            ["]]"] = "@class.outer",
-                        },
-                        goto_next_end = {
-                            ["]M"] = "@function.outer",
-                            ["]["] = "@class.outer",
-                        },
-                        goto_previous_start = {
-                            ["[m"] = "@function.outer",
-                            ["[["] = "@class.outer",
-                        },
-                        goto_previous_end = {
-                            ["[M"] = "@function.outer",
-                            ["[]"] = "@class.outer",
-                        },
-                    },
-                },
-            })
-
-            -- Auto-open all folds when opening a file
-            vim.api.nvim_create_autocmd({ "BufReadPost", "FileReadPost" }, {
-                pattern = "*",
-                callback = function()
-                    vim.cmd("normal zR")
-                end,
-                desc = "Open all folds on file load",
-            })
-        end,
     },
 
-    -- vim-terraform: Terraform filetype detection and syntax
+    -- formatting mostly, drop-in replacement for null-ls which I was happy with
+    -- (TODO: should check out duo 'stevearc/conform.nvim' and 'nvim-lint',
+    -- although it looks like none-ls project is far from dead as it is not only
+    -- providing formatting)
     {
-        "hashivim/vim-terraform",
-        ft = { "terraform", "hcl" },
-        init = function()
-            -- Override default filetype detection (runs before plugin loads)
-            vim.cmd([[silent! autocmd! filetypedetect BufRead,BufNewFile *.tf]])
-
-            vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-                pattern = { ".terraformrc", "terraform.rc" },
-                callback = function()
-                    vim.bo.filetype = "hcl"
-                end,
-                desc = "Set HCL filetype for terraform config files",
-            })
-
-            vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-                pattern = { "*.hcl", "*.tf", "*.tfvars" },
-                callback = function()
-                    vim.bo.filetype = "terraform"
-                end,
-                desc = "Set Terraform filetype",
-            })
-
-            vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-                pattern = { "*.tfstate", "*.tfstate.backup" },
-                callback = function()
-                    vim.bo.filetype = "json"
-                end,
-                desc = "Set JSON filetype for Terraform state files",
-            })
-        end,
-    },
-
-    -- conform.nvim: code formatting
-    {
-        "stevearc/conform.nvim",
-        event = { "BufWritePre" },
-        cmd = { "ConformInfo" },
-        keys = {
-            {
-                "<leader>fm",
-                function()
-                    require("conform").format({ async = true, lsp_fallback = true })
-                end,
-                mode = "",
-                desc = "[F]or[m]at buffer",
-            },
+        "nvimtools/none-ls.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
         },
-        opts = {
-            formatters_by_ft = {
-                javascript = { "prettier" },
-                typescript = { "prettier" },
-                javascriptreact = { "prettier" },
-                typescriptreact = { "prettier" },
-                json = { "prettier" },
-                yaml = { "prettier" },
-                markdown = { "prettier" },
-                lua = { "stylua" },
-                python = { "ruff_format" },
-                go = { "goimports" },
-                sh = { "shfmt" },
-                bash = { "shfmt" },
-                terraform = { "terraform_fmt" },
-            },
-            format_on_save = {
-                timeout_ms = 3000,
-                lsp_fallback = true,
-            },
-        },
-    },
-
-    -- nvim-lint: linting and diagnostics
-    {
-        "mfussenegger/nvim-lint",
-        event = { "BufReadPost", "BufNewFile", "BufWritePost" },
-        config = function()
-            local lint = require("lint")
-
-            -- configure linters per filetype
-            lint.linters_by_ft = {
-                markdown = { "vale" },
-                text = { "vale" },
-            }
-
-            -- create autocmd for linting
-            local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
-            vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave", "TextChanged" }, {
-                group = lint_augroup,
-                callback = function()
-                    require("lint").try_lint()
-                end,
-            })
-        end,
     },
 }
