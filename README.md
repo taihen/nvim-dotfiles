@@ -96,7 +96,7 @@ This configuration includes carefully selected plugins organized by category:
 
 - [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) - Terminal UI for Git operations
 - [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) - Git signs and hunks
-- [vscode-diff.nvim](https://github.com/esmuellert/vscode-diff.nvim) - VSCode-style diff viewer
+- [codediff.nvim](https://github.com/esmuellert/codediff.nvim) - VSCode-style diff viewer
 
 ### Editing Enhancement
 

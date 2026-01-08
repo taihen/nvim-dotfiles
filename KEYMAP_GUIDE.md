@@ -29,7 +29,7 @@ All leader-based keymaps follow consistent grouping patterns:
 | `<leader>s*` | **Search**                 | Telescope fuzzy finding                            |
 | `<leader>t*` | **Toggle**                 | Toggle features (blame, deleted, etc.)             |
 | `<leader>u*` | **Utility**                | Utility operations                                 |
-| `<leader>v*` | **VSCode Diff**            | Diff viewer operations                             |
+| `<leader>v*` | **CodeDiff**               | Diff viewer operations                             |
 | `<leader>w*` | **Window/Workspace/Write** | Window, workspace, write operations                |
 | `<leader>x*` | **Trouble**                | Trouble diagnostics                                |
 
@@ -98,9 +98,9 @@ All leader-based keymaps follow consistent grouping patterns:
 - `<leader>tb` - Toggle blame line
 - `<leader>td` - Toggle deleted
 
-#### VSCode Diff (`<leader>v*`)
+#### CodeDiff (`<leader>v*`)
 
-- `<leader>vd` - VSCode diff explorer
+- `<leader>vd` - CodeDiff explorer
 - `<leader>vf` - Diff file vs HEAD
 - `<leader>vp` - Diff file vs previous commit
 - `<leader>vb` - Diff file vs branch
@@ -155,7 +155,7 @@ Consistent `[` and `]` prefix patterns for navigation:
 | `[]` / `][` | Class ends                    | treesitter textobjects         |
 | `[q` / `]q` | Quickfix                      | mini.bracketed                 |
 | `[t` / `]t` | TODO comments (ERROR/WARNING) | todo-comments                  |
-| `[x` / `]x` | Conflicts                     | vscode-diff                    |
+| `[x` / `]x` | Conflicts                     | codediff                       |
 | `[i` / `]i` | Indent scope                  | mini.indentscope               |
 
 ## LSP Keymaps (Buffer-local)
