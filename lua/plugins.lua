@@ -1048,7 +1048,7 @@ return {
             vim.opt.foldlevelstart = 99
 
             -- Configure treesitter (using new API)
-            require("nvim-treesitter.config").setup({
+            require("nvim-treesitter.configs").setup({
                 ensure_installed = {
                     "bash", "css", "dockerfile", "gitignore", "git_config",
                     "gitcommit", "git_rebase", "gitattributes", "go", "gomod",

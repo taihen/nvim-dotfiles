@@ -21,6 +21,9 @@ require("keymap")
 -- Enable (auto)commands
 require("cmd")
 
+-- Config utilities
+require("config.whitespace")
+
 -- Install plugins
 require("lazy").setup("plugins", {
     ui = {
