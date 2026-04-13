@@ -236,6 +236,7 @@ M.servers = {
             },
         },
     },
+    marksman = {},
     jsonls = {
         settings = {
             json = {

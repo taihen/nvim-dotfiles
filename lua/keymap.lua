@@ -111,3 +111,9 @@ keymap(
     ":lua vim.wo.wrap = not vim.wo.wrap>CR>",
     { desc = "[W]rap [T]oggle" }
 )
+
+-- file explorer toggle (snacks.nvim)
+keymap("n", "<leader>fe", function() Snacks.explorer() end, { desc = "[F]ile [E]xplorer toggle" })
+
+-- built-in undo tree (0.12+)
+keymap("n", "<leader>u", ":Undotree<CR>", { desc = "[U]ndo tree" })

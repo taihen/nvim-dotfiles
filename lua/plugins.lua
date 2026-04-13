@@ -245,8 +245,8 @@ return {
             -- LSP configuration
             lsp = {
                 override = {
+                    -- stylize_markdown removed: deprecated in 0.12, treesitter handles it natively
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-                    ["vim.lsp.util.stylize_markdown"] = true,
                     ["cmp.entry.get_documentation"] = true,
                 },
                 progress = {
@@ -483,7 +483,22 @@ return {
             -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
             -- - sd'   - [S]urround [D]elete [']quotes
             -- - sr)'  - [S]urround [R]eplace [)] [']
-            require("mini.surround").setup()
+            -- - saiwb - [S]urround [A]dd [I]nner [W]ord [B]old (markdown **)
+            -- - saiw* - [S]urround [A]dd [I]nner [W]ord italic (markdown *)
+            require("mini.surround").setup({
+                custom_surroundings = {
+                    -- Markdown bold
+                    b = {
+                        input = { '%*%*().-()%*%*' },
+                        output = { left = '**', right = '**' },
+                    },
+                    -- Markdown italic
+                    ['*'] = {
+                        input = { '%*().-()%*' },
+                        output = { left = '*', right = '*' },
+                    },
+                },
+            })
 
             -- visualize scope/indent with animated vertical line
             -- provides better UX than snacks.indent (animated + navigation)
@@ -844,38 +859,42 @@ return {
     -- of supermaven, which was fast and not intrusive I switched to sidekick
     -- with copilot which on one hand provides inline completion and on the
     -- other hand with cli agents
-    {
-        "folke/sidekick.nvim",
-        opts = {
-            cli = {
-                mux = {
+	    {
+	        "folke/sidekick.nvim",
+	        -- Load on first insert so nvim-cmp's <Tab> handler can call into sidekick NES.
+	        event = "InsertEnter",
+	        opts = {
+	            cli = {
+	                mux = {
                     -- using zellij for general terminal mux and tmux
                     -- exclusively for sidekick
                     backend = "tmux",
                     enabled = true,
                 },
             },
-            nes = {
-                enabled = true,
-                debounce = 100,
-                trigger = {
-                    events = { "ModeChanged i:n", "TextChanged" },
-                },
-            },
-        },
-        keys = {
-            {
-                "<tab>",
+	            nes = {
+	                enabled = true,
+	                debounce = 100,
+	                trigger = {
+	                    -- Trigger while typing (insert mode). "TextChanged" is normal-mode only.
+	                    events = { "TextChangedI", "TextChangedP", "InsertLeave" },
+	                },
+	            },
+	        },
+	        keys = {
+	            {
+	                "<tab>",
                 function()
                     -- if there is a next edit, jump to it, otherwise apply
                     -- it if any
                     if not require("sidekick").nes_jump_or_apply() then
                         return "<Tab>" -- fallback to normal tab
                     end
-                end,
-                expr = true,
-                desc = "Goto/Apply Next Edit Suggestion",
-            },
+	                end,
+	                mode = { "n" },
+	                expr = true,
+	                desc = "Goto/Apply Next Edit Suggestion",
+	            },
             {
                 "<c-.>",
                 function()
@@ -1020,6 +1039,7 @@ return {
     -- * and more ...
     {
         "nvim-treesitter/nvim-treesitter",
+        branch = "main",
         build = ":TSUpdate",
         lazy = false,
         priority = 100,
@@ -1044,68 +1064,169 @@ return {
         config = function()
             -- Enable treesitter-based folding
             vim.opt.foldmethod = "expr"
-            vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+            -- nvim-treesitter (main rewrite) removed `nvim_treesitter#foldexpr()`;
+            -- use Neovim's built-in foldexpr.
+            vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
             vim.opt.foldlevelstart = 99
 
-            -- Configure treesitter (using new API)
-            require("nvim-treesitter.configs").setup({
-                ensure_installed = {
-                    "bash", "css", "dockerfile", "gitignore", "git_config",
-                    "gitcommit", "git_rebase", "gitattributes", "go", "gomod",
-                    "gosum", "gowork", "helm", "html", "regex", "javascript",
-                    "json", "lua", "luadoc", "markdown", "markdown_inline",
-                    "python", "terraform", "hcl", "toml", "tsx", "typescript",
-                    "vim", "vimdoc", "yaml",
-                },
-                highlight = { enable = true },
-                indent = { enable = true },
-                auto_tag = { enable = true },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = "<C-space>",
-                        node_incremental = "<C-space>",
-                        scope_incremental = false,
-                        node_decremental = "<bs>",
-                    },
-                },
-                textobjects = {
-                    select = {
-                        enable = true,
-                        lookahead = true,
-                        keymaps = {
-                            ["af"] = "@function.outer",
-                            ["if"] = "@function.inner",
-                            ["ac"] = "@class.outer",
-                            ["ic"] = "@class.inner",
-                            ["aa"] = "@parameter.outer",
-                            ["ia"] = "@parameter.inner",
-                            ["ab"] = "@block.outer",
-                            ["ib"] = "@block.inner",
-                        },
-                    },
-                    move = {
-                        enable = true,
-                        set_jumps = true,
-                        goto_next_start = {
-                            ["]m"] = "@function.outer",
-                            ["]]"] = "@class.outer",
-                        },
-                        goto_next_end = {
-                            ["]M"] = "@function.outer",
-                            ["]["] = "@class.outer",
-                        },
-                        goto_previous_start = {
-                            ["[m"] = "@function.outer",
-                            ["[["] = "@class.outer",
-                        },
-                        goto_previous_end = {
-                            ["[M"] = "@function.outer",
-                            ["[]"] = "@class.outer",
-                        },
-                    },
-                },
-            })
+            local ensure_installed = {
+                "bash",
+                "css",
+                "dockerfile",
+                "gitignore",
+                "git_config",
+                "gitcommit",
+                "git_rebase",
+                "gitattributes",
+                "go",
+                "gomod",
+                "gosum",
+                "gowork",
+                "helm",
+                "html",
+                "regex",
+                "javascript",
+                "json",
+                "lua",
+                "luadoc",
+                "markdown",
+                "markdown_inline",
+                "python",
+                "terraform",
+                "hcl",
+                "toml",
+                "tsx",
+                "typescript",
+                "vim",
+                "vimdoc",
+                "yaml",
+            }
+
+	            -- Old API (nvim-treesitter "master" branch)
+	            local ok_old, configs = pcall(require, "nvim-treesitter.configs")
+	            if ok_old then
+	                configs.setup({
+	                    ensure_installed = ensure_installed,
+	                    highlight = { enable = true },
+	                    indent = { enable = true },
+	                    -- NOTE: nvim-ts-autotag moved away from configs; keep this harmless if present.
+	                    auto_tag = { enable = true },
+	                    incremental_selection = {
+	                        enable = true,
+	                        keymaps = {
+	                            init_selection = "<C-space>",
+	                            node_incremental = "<C-space>",
+	                            scope_incremental = false,
+	                            node_decremental = "<bs>",
+	                        },
+	                    },
+	                    textobjects = {
+	                        select = {
+	                            enable = true,
+	                            lookahead = true,
+	                            keymaps = {
+	                                ["af"] = "@function.outer",
+	                                ["if"] = "@function.inner",
+	                                ["ac"] = "@class.outer",
+	                                ["ic"] = "@class.inner",
+	                                ["aa"] = "@parameter.outer",
+	                                ["ia"] = "@parameter.inner",
+	                                ["ab"] = "@block.outer",
+	                                ["ib"] = "@block.inner",
+	                            },
+	                        },
+	                        move = {
+	                            enable = true,
+	                            set_jumps = true,
+	                            goto_next_start = {
+	                                ["]m"] = "@function.outer",
+	                                ["]]"] = "@class.outer",
+	                            },
+	                            goto_next_end = {
+	                                ["]M"] = "@function.outer",
+	                                ["]["] = "@class.outer",
+	                            },
+	                            goto_previous_start = {
+	                                ["[m"] = "@function.outer",
+	                                ["[["] = "@class.outer",
+	                            },
+	                            goto_previous_end = {
+	                                ["[M"] = "@function.outer",
+	                                ["[]"] = "@class.outer",
+	                            },
+	                        },
+	                    },
+	                })
+	                return
+	            end
+
+	            -- New rewrite (nvim-treesitter "main" branch)
+	            -- Only configure the install_dir; do NOT call ts.install() here.
+	            -- needs_update() has no revision files to compare against, so it
+	            -- returns true for every parser on every startup → full redownload
+	            -- each launch. Parsers are installed once via build = ":TSUpdate"
+	            -- in the lazy spec; use :TSUpdate manually for subsequent updates.
+	            local ok_ts, ts = pcall(require, "nvim-treesitter")
+	            if ok_ts then
+	                pcall(ts.setup, { install_dir = vim.fn.stdpath("data") .. "/site" })
+	            end
+
+	            local group = vim.api.nvim_create_augroup("nvim-treesitter-rewrite", { clear = true })
+	            vim.api.nvim_create_autocmd("FileType", {
+	                group = group,
+	                callback = function()
+	                    -- Highlighting (Neovim built-in).
+	                    pcall(vim.treesitter.start)
+
+	                    -- Folding (Neovim built-in).
+	                    vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+	                    vim.wo.foldmethod = "expr"
+
+	                    -- Indentation (provided by nvim-treesitter rewrite; experimental).
+	                    if ok_ts and ts.indentexpr then
+	                        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+	                    end
+	                end,
+	            })
+
+	            -- Textobjects setup for the rewrite (old configs-based setup is gone).
+	            local ok_to, textobjects = pcall(require, "nvim-treesitter-textobjects")
+	            if ok_to and textobjects.setup then
+	                textobjects.setup({
+	                    select = { lookahead = true },
+	                    move = { set_jumps = true },
+	                })
+
+	                local function map_select(lhs, query)
+	                    vim.keymap.set({ "x", "o" }, lhs, function()
+	                        require("nvim-treesitter-textobjects.select").select_textobject(query, "textobjects")
+	                    end)
+	                end
+
+	                local function map_move(modes, lhs, fn, query)
+	                    vim.keymap.set(modes, lhs, function()
+	                        require("nvim-treesitter-textobjects.move")[fn](query, "textobjects")
+	                    end)
+	                end
+
+	                map_select("af", "@function.outer")
+	                map_select("if", "@function.inner")
+	                map_select("ac", "@class.outer")
+	                map_select("ic", "@class.inner")
+	                map_select("aa", "@parameter.outer")
+	                map_select("ia", "@parameter.inner")
+	                map_select("ab", "@block.outer")
+	                map_select("ib", "@block.inner")
+
+	                map_move({ "n", "x", "o" }, "]m", "goto_next_start", "@function.outer")
+	                map_move({ "n", "x", "o" }, "]]", "goto_next_start", "@class.outer")
+	                map_move({ "n", "x", "o" }, "]M", "goto_next_end", "@function.outer")
+	                map_move({ "n", "x", "o" }, "][", "goto_next_end", "@class.outer")
+	                map_move({ "n", "x", "o" }, "[m", "goto_previous_start", "@function.outer")
+	                map_move({ "n", "x", "o" }, "[[", "goto_previous_start", "@class.outer")
+	                map_move({ "n", "x", "o" }, "[M", "goto_previous_end", "@function.outer")
+	                map_move({ "n", "x", "o" }, "[]", "goto_previous_end", "@class.outer")
+	            end
 
             -- Auto-open all folds when opening a file
             vim.api.nvim_create_autocmd({ "BufReadPost", "FileReadPost" }, {

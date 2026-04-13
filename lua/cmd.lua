@@ -40,4 +40,9 @@ cmd([[autocmd FileType markdown set tw=80 wrap]])
 -- change netrw nested list style
 cmd("let g:netrw_liststyle = 3")
 
+-- Aliases for removed 0.12 commands (replaced by :lsp subcommands)
+create_cmd("LspInfo", function() vim.cmd("lsp") end, {})
+create_cmd("LspRestart", function() vim.cmd("lsp restart") end, {})
+create_cmd("LspLog", function() vim.cmd("lsp log") end, {})
+
 -- autocommands END

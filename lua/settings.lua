@@ -137,3 +137,7 @@ opt.backspace = { "start", "eol", "indent" }
 -- pop up settings
 opt.pumheight = 10
 opt.pumblend = 10
+
+-- diff: 0.12 adds indent-heuristic and inline:char by default;
+-- linematch improves hunk alignment in dense diffs
+opt.diffopt:append("linematch:60")
